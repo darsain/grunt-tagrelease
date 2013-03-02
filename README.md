@@ -30,12 +30,12 @@ In your project's Gruntfile, add a section named `tagrelease` to the data object
 simple task, and does not conform to multi task options & files input types! All available configuration styles are
 described below.
 
-This is the most verbose form of the configuration with default options:
+This is the most verbose form of the configuration with default options and a version from a JSON file:
 
 ```js
 grunt.initConfig({
 	tagrelease: {
-		file: '...', // JSON file goes here.
+		file: 'package.json',
 		commit:  true,
 		message: 'Release %version%',
 		prefix:  'v',
@@ -44,9 +44,33 @@ grunt.initConfig({
 });
 ```
 
-If you don't need to change the default options, just pass file path directly to the task as a string:
+Version from a `version` property, and no prefix:
 
-Default options and one JSON file:
+```js
+grunt.initConfig({
+	tagrelease: {
+		version: '1.0.1',
+		prefix:  '',
+	},
+});
+```
+
+Version retrieved from a function passed to the `version` property, and enabled anotated tags:
+
+```js
+grunt.initConfig({
+	tagrelease: {
+		version: function () {
+			return '1.0.1';
+		},
+		anotated:  true,
+	},
+});
+```
+
+#### Simple configs
+
+Default options and a new version from a JSON file:
 
 ```js
 grunt.initConfig({
@@ -54,7 +78,40 @@ grunt.initConfig({
 });
 ```
 
+Default options and a new version passed directly:
+
+```js
+grunt.initConfig({
+	tagrelease: '1.0.1'
+});
+```
+
+Default options and a new version from a function:
+
+```js
+grunt.initConfig({
+	tagrelease: function () {
+		return '1.0.1';
+	}
+});
+```
+
 ## Options
+
+#### version
+Type: `Mixed`
+Default: `null`
+
+New version that will be used as a new tag name. Has a priority over the `file` option below. Can be a string or a
+function that returns a string. You have to define either this, or a `file` option below, otherwise the task won't know
+what should be the new tag.
+
+#### file
+Type: `String`
+Default: `null`
+
+Path to the JSON file with version that should be used as a new tag. You have to define either this, or a `version`
+option above, otherwise the task won't know what should be the new tag.
 
 #### commit
 Type: `Boolean`
@@ -81,13 +138,6 @@ Type: `Boolean`
 Default: `false`
 
 Whether the new tag should be annotated. If enabled, the tag will receive a message from `message` option.
-
-#### file
-Type: `String`
-Default: `null`
-
-Path to the JSON file with version that should be used as a new tag. Doesn't default to anything, you have to specify
-this.
 
 ## Usage Examples
 
@@ -120,7 +170,7 @@ grunt.registerTask('release', function (type) {
 });
 ```
 
-And now you can call this from CLI to create a new minor release of a project:
+And now you can call this command to create a new minor release of a project:
 
 ```shell
 grunt release:minor
