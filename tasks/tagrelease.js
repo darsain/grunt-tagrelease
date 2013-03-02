@@ -32,8 +32,25 @@ module.exports = function(grunt) {
 
 	// Task definition
 	grunt.registerTask('tagrelease', 'Tagging a new release.', function () {
-		var config   = typeof grunt.config('tagrelease') === 'string' ? { file: grunt.config('tagrelease') } : grunt.config('tagrelease');
-		var o        = grunt.util._.extend({
+		var config = grunt.config('tagrelease');
+		switch (typeof config) {
+			case 'string':
+				if (grunt.file.isFile(config)) {
+					config = { file: config };
+				} else if (semver.valid(config)) {
+					config = { version: config };
+				} else {
+					failed('Invalid configuration (file doesn\'t exist, or version is not a valid semantic version).');
+					return;
+				}
+				break;
+
+			case 'function':
+				config = { version: config };
+				break;
+		}
+		var o = grunt.util._.extend({
+			version: false,
 			commit:  true,
 			message: 'Release %version%',
 			prefix:  'v',
@@ -41,25 +58,41 @@ module.exports = function(grunt) {
 		}, config);
 		var meta, newVersion;
 
-		// Check metafile validity
-		if (typeof o.file === 'undefined' || !grunt.file.isFile(o.file)) {
-			failed('File "' + o.file + '" not found.');
-			return;
+		// Set the new version
+		switch (typeof o.version) {
+			case 'string':
+				newVersion = o.version;
+				break;
+
+			case 'function':
+				newVersion = o.version();
+				break;
+
+			default:
+				// Check metafile validity
+				if (typeof o.file === 'undefined' || !grunt.file.isFile(o.file)) {
+					failed('File "' + o.file + '" not found.');
+					return;
+				} else {
+					meta = grunt.file.readJSON(o.file);
+					if (typeof meta.version === 'undefined') {
+						failed('File "' + o.file + '" has no version property.');
+						return;
+					}
+					newVersion = meta.version;
+				}
+		}
+
+		// Validate new version
+		if (semver.valid(newVersion)) {
+			newVersion = semver.valid(newVersion);
 		} else {
-			meta = grunt.file.readJSON(o.file);
-			if (typeof meta.version === 'undefined') {
-				failed('File "' + o.file + '" has no version property.');
-				return;
-			}
-			newVersion = semver.valid(meta.version);
-			if (!newVersion) {
-				failed('"' + o.newVersion + '" is not a valid semantic version.');
-				return;
-			}
+			failed('"' + newVersion + '" is not a valid semantic version.');
+			return;
 		}
 
 		// Set the message used in commit and annotated tags
-		var message = o.message.replace('%version%', meta.version);
+		var message = o.message.replace('%version%', newVersion);
 
 		// Check for git repository
 		if (exec('git status').code !== 0) {
@@ -67,15 +100,8 @@ module.exports = function(grunt) {
 			return;
 		}
 
-		// Commit un-staged changes if there are some
-		if (o.commit) {
-			if (exec('git commit -a -m "' + message + '"').code === 0) {
-				grunt.log.writeln('Un-staged changes committed as: ' + message);
-			}
-		}
-
 		// Get the current highest repository tag
-		var tags = shell.exec('git tag', { silent: true });
+		var tags = exec('git tag');
 		var highestTag;
 
 		if (tags.code === 0) {
@@ -89,8 +115,15 @@ module.exports = function(grunt) {
 
 			// Check whether the new tag is higher than the current highest tag
 			if (highestTag && !semver.gt(newVersion, highestTag)) {
-				failed('Version in "' + o.file + '" isn\'t higher than the current highest repository tag.');
+				failed('Version "' + newVersion + '" is lower or equal than the current highest tag "' + highestTag + '".');
 				return;
+			}
+		}
+
+		// Commit un-staged changes if there are some
+		if (o.commit) {
+			if (exec('git commit -a -m "' + message + '"').code === 0) {
+				grunt.log.writeln('Un-staged changes committed as: ' + message.cyan);
 			}
 		}
 
@@ -100,7 +133,7 @@ module.exports = function(grunt) {
 			failed('Couldn\'t tag the last commit.', tagging.output);
 			return;
 		} else {
-			grunt.log.writeln('Tagged as: ' + o.prefix + newVersion);
+			grunt.log.writeln('Tagged as: ' + (o.prefix + newVersion).cyan);
 		}
 	});
 };
