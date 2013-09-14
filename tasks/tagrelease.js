@@ -21,6 +21,41 @@ function exec(command) {
 	return shell.exec(command, { silent: true });
 }
 
+/**
+ * Git convenience methods.
+ *
+ * @type {Object}
+ */
+var git = {
+	exists: function () {
+		return exec('git status').code !== 0;
+	},
+	getHighestTag: function () {
+		var highestTag = '0.0.0';
+		var tags = exec('git tag');
+
+		if (tags.code !== 0) {
+			return highestTag;
+		}
+
+		tags = tags.output.split('\n');
+		tags.forEach(function (tag) {
+			tag = semver.valid(tag);
+			if (tag && (!highestTag || semver.gt(tag, highestTag))) {
+				highestTag = tag;
+			}
+		});
+
+		return highestTag;
+	},
+	isClean: function () {
+		return exec('git diff-index --quiet HEAD --').code === 0;
+	},
+	isTagged: function () {
+		return !!exec('git tag --points-at HEAD').output.split('\n').filter(function (line) { return !!line; }).length;
+	}
+};
+
 module.exports = function(grunt) {
 	// Error handler
 	function failed(message, error) {
@@ -95,33 +130,22 @@ module.exports = function(grunt) {
 		var message = o.message.replace('%version%', newVersion);
 
 		// Check for git repository
-		if (exec('git status').code !== 0) {
+		if (git.exists()) {
 			failed('Git repository not found.');
 			return;
 		}
 
 		// Get the current highest repository tag
-		var tags = exec('git tag');
-		var highestTag;
+		var highestTag = git.getHighestTag();
 
-		if (tags.code === 0) {
-			tags = tags.output.split('\n');
-			tags.forEach(function (tag) {
-				tag = semver.valid(tag);
-				if (tag && (!highestTag || semver.gt(tag, highestTag))) {
-					highestTag = tag;
-				}
-			});
-
-			// Check whether the new tag is higher than the current highest tag
-			if (highestTag && !semver.gt(newVersion, highestTag)) {
-				failed('Version "' + newVersion + '" is lower or equal than the current highest tag "' + highestTag + '".');
-				return;
-			}
+		// Check whether the new tag is higher than the current highest tag
+		if (highestTag && !semver.gt(newVersion, highestTag)) {
+			failed('Version "' + newVersion + '" is lower or equal than the current highest tag "' + highestTag + '".');
+			return;
 		}
 
 		// Commit un-staged changes if there are some
-		if (o.commit) {
+		if (o.commit && !git.isClean()) {
 			if (exec('git commit -a -m "' + message + '"').code === 0) {
 				grunt.log.writeln('Un-staged changes committed as: ' + message.cyan);
 			}

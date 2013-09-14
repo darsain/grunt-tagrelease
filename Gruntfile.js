@@ -19,7 +19,6 @@ module.exports = function(grunt) {
 				'tasks/*.js',
 			],
 		},
-		bumpup: 'test/metafile.json',
 		tagrelease: 'test/metafile.json'
 	});
 
@@ -28,12 +27,9 @@ module.exports = function(grunt) {
 
 	// These plugins provide necessary tasks.
 	grunt.loadNpmTasks('grunt-contrib-jshint');
-	grunt.loadNpmTasks('grunt-bumpup');
 
 	// Registering the testing task.
-	grunt.registerTask('test', function (release) {
-		release = release ? release : 'patch';
-		grunt.task.run('bumpup:' + release);
+	grunt.registerTask('test', function () {
 		grunt.task.run('tagrelease');
 	});
 
