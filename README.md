@@ -78,6 +78,15 @@ grunt.initConfig({
 });
 ```
 
+Default options and a new version expanded from a template:
+
+```js
+grunt.initConfig({
+	pkg: grunt.file.readJSON('package.json'),
+	tagrelease: '<%= pkg.version %>'
+});
+```
+
 Default options and a new version passed directly:
 
 ```js
