@@ -3,7 +3,7 @@
 Commit the changes and tag the last commit with a version from provided JSON file. If there is nothing to commit, the
 task will tag the current last commit.
 
-This task has been created to work with other tasks like [grunt-bumpup](https://github.com/Darsain/grunt-bumpup) to help
+This task has been created to work with other tasks like [grunt-bumpup](https://github.com/darsain/grunt-bumpup) to help
 create a nicely configurable release task. You can see an example in **[Usage Examples section](#usage-examples)**.
 
 This is a [Grunt](http://gruntjs.com/) 0.4 plugin. If you haven't used [Grunt](http://gruntjs.com/) before, be sure to
