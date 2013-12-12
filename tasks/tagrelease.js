@@ -88,7 +88,7 @@ module.exports = function(grunt) {
 			version: false,
 			commit:  true,
 			message: 'Release %version%',
-			prefix:  'v',
+			prefix:  '',
 			annotate: false,
 		}, config);
 		var meta, newVersion;

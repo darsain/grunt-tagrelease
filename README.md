@@ -138,9 +138,9 @@ Message to be used in commits, and annotated tags. Available is one token:
 
 #### prefix
 Type: `String`
-Default: `v`
+Default: *nothing*
 
-Tag prefix.
+Tag prefix. Set to `v` to have tags line `v1.1.0`.
 
 #### annotate
 Type: `Boolean`
