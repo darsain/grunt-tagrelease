@@ -1,5 +1,5 @@
-src/
-tmp/
 test/
 node_modules/
+.gitignore
+.jshintrc
 Gruntfile.js
