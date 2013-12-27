@@ -119,7 +119,7 @@ module.exports = function(grunt) {
 		}
 
 		// Validate new version
-		var buildMeta = newVersion.split('+')[1]
+		var buildMeta = newVersion.split('+')[1];
 		if (semver.valid(newVersion)) {
 			newVersion = semver.valid(newVersion);
 			if (buildMeta) {
