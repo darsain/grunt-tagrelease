@@ -119,8 +119,12 @@ module.exports = function(grunt) {
 		}
 
 		// Validate new version
+		var buildMeta = newVersion.split('+')[1];
 		if (semver.valid(newVersion)) {
 			newVersion = semver.valid(newVersion);
+			if (buildMeta) {
+				newVersion += '+' + buildMeta;
+			}
 		} else {
 			failed('"' + newVersion + '" is not a valid semantic version.');
 			return;
@@ -139,7 +143,7 @@ module.exports = function(grunt) {
 		var highestTag = git.getHighestTag();
 
 		// Check whether the new tag is higher than the current highest tag
-		if (highestTag && !semver.gt(newVersion, highestTag)) {
+		if (!buildMeta && highestTag && !semver.gt(newVersion, highestTag)) {
 			failed('Version "' + newVersion + '" is lower or equal than the current highest tag "' + highestTag + '".');
 			return;
 		}
