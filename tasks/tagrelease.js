@@ -30,22 +30,22 @@ var git = {
 	exists: function () {
 		return exec('git status').code !== 0;
 	},
+	getTags: function () {
+		if (this.tags != null) {
+			return this.tags;
+		}
+		var tags = exec('git tag');
+		return tags.code !== 0 ? [] : tags.output.split('\n').filter(function (tag) {
+			return !!String(tag).trim();
+		});
+	},
 	getHighestTag: function () {
 		var highestTag = '0.0.0';
-		var tags = exec('git tag');
-
-		if (tags.code !== 0) {
-			return highestTag;
-		}
-
-		tags = tags.output.split('\n');
-		tags.forEach(function (tag) {
-			tag = semver.valid(tag);
-			if (tag && (!highestTag || semver.gt(tag, highestTag))) {
+		this.getTags().forEach(function (tag) {
+			if (semver.valid(tag) && semver.gt(tag, highestTag)) {
 				highestTag = tag;
 			}
 		});
-
 		return highestTag;
 	},
 	isClean: function () {
@@ -53,6 +53,9 @@ var git = {
 	},
 	isTagged: function () {
 		return !!exec('git tag --points-at HEAD').output.split('\n').filter(function (line) { return !!line; }).length;
+	},
+	tagExists: function (name) {
+		return ~this.getTags().indexOf(name);
 	}
 };
 
@@ -91,7 +94,7 @@ module.exports = function(grunt) {
 			prefix:  '',
 			annotate: false,
 		}, config);
-		var meta, newVersion;
+		var newVersion, buildMeta, newTag;
 
 		// Set the new version
 		switch (typeof o.version) {
@@ -109,7 +112,7 @@ module.exports = function(grunt) {
 					failed('File "' + o.file + '" not found.');
 					return;
 				} else {
-					meta = grunt.file.readJSON(o.file);
+					var meta = grunt.file.readJSON(o.file);
 					if (typeof meta.version === 'undefined') {
 						failed('File "' + o.file + '" has no version property.');
 						return;
@@ -119,12 +122,16 @@ module.exports = function(grunt) {
 		}
 
 		// Validate new version
-		if (semver.valid(newVersion)) {
-			newVersion = semver.valid(newVersion);
-		} else {
+		buildMeta = newVersion.split('+')[1];
+		newVersion = semver.valid(newVersion);
+		if (!newVersion) {
 			failed('"' + newVersion + '" is not a valid semantic version.');
 			return;
 		}
+		if (buildMeta) {
+			newVersion += '+' + buildMeta;
+		}
+		newTag = o.prefix + newVersion;
 
 		// Set the message used in commit and annotated tags
 		var message = o.message.replace('%version%', newVersion);
@@ -139,7 +146,9 @@ module.exports = function(grunt) {
 		var highestTag = git.getHighestTag();
 
 		// Check whether the new tag is higher than the current highest tag
-		if (highestTag && !semver.gt(newVersion, highestTag)) {
+		if (highestTag && (buildMeta ?
+			!(semver.gte(newVersion, highestTag) && !git.tagExists(newTag)) :
+			!semver.gt(newVersion, highestTag))) {
 			failed('Version "' + newVersion + '" is lower or equal than the current highest tag "' + highestTag + '".');
 			return;
 		}
@@ -157,7 +166,7 @@ module.exports = function(grunt) {
 			failed('Couldn\'t tag the last commit.', tagging.output);
 			return;
 		} else {
-			grunt.log.writeln('Tagged as: ' + (o.prefix + newVersion).cyan);
+			grunt.log.writeln('Tagged as: ' + newTag.cyan);
 		}
 	});
 };

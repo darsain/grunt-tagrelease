@@ -1,7 +1,7 @@
 {
 	"name": "grunt-tagrelease",
 	"description": "Commit the changes and tag the last commit with a version from provided JSON file.",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"homepage": "https://github.com/darsain/grunt-tagrelease",
 	"author": {
 		"name": "Darsain",
