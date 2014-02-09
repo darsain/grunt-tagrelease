@@ -55,7 +55,7 @@ grunt.initConfig({
 });
 ```
 
-Version retrieved from a function passed to the `version` property, and enabled anotated tags:
+Version retrieved from a function passed to the `version` property, and enabled annotated tags:
 
 ```js
 grunt.initConfig({
@@ -63,7 +63,7 @@ grunt.initConfig({
 		version: function () {
 			return '1.0.1';
 		},
-		anotated:  true,
+		annotate:  true,
 	},
 });
 ```
