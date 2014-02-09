@@ -1,7 +1,7 @@
 {
 	"name": "grunt-tagrelease",
-	"description": "Commit the changes and tag the last commit with a version from provided JSON file.",
-	"version": "0.3.2",
+	"description": "This plugin is being deprecated in favor of grunt-release, and will be eventually unpublished. Please migrate.",
+	"version": "0.3.3",
 	"homepage": "https://github.com/darsain/grunt-tagrelease",
 	"author": {
 		"name": "Darsain",
