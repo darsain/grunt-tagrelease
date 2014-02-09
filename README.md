@@ -1,5 +1,7 @@
 # grunt-tagrelease
 
+**This plugin is being deprecated in favor of [grunt-release](https://npmjs.org/package/grunt-release), and will be eventually unpublished. Please migrate.**
+
 Commit the changes and tag the last commit with a version from provided JSON file. If there is nothing to commit, the
 task will tag the current last commit.
 

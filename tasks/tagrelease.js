@@ -70,6 +70,7 @@ module.exports = function(grunt) {
 
 	// Task definition
 	grunt.registerTask('tagrelease', 'Tagging a new release.', function () {
+		grunt.log.warn('grunt-tagrelease is being deprecated in favor of grunt-release. Please migrate.');
 		var config = grunt.config('tagrelease');
 		switch (typeof config) {
 			case 'string':
